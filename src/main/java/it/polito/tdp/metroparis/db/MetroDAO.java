@@ -102,7 +102,7 @@ public class MetroDAO {
 		String sql = "SELECT  id_connessione, id_linea, id_stazP, id_stazA "
 				+ "FROM connessione "
 				+ "WHERE id_stazP>id_stazA" ;
-		
+		 
 		try {
 			Connection conn = DBConnect.getConnection() ;
 			
