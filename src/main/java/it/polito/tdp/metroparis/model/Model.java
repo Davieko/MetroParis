@@ -1,6 +1,8 @@
 package it.polito.tdp.metroparis.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,8 +80,11 @@ public class Model {
 		//visita in ampiezza
 		BreadthFirstIterator<Fermata, DefaultEdge> bfv = new BreadthFirstIterator<>(this.grafo, partenza);
 		
+		this.predecessore = new HashMap<>();
+		this.predecessore.put(partenza, null);
+		
+		//Listener -> gestore di eventi, chiamati automaticamente
 		bfv.addTraversalListener(new TraversalListener<Fermata, DefaultEdge>() {
-
 			@Override
 			public void connectedComponentFinished(ConnectedComponentTraversalEvent e) {	
 			}
@@ -89,12 +94,29 @@ public class Model {
 			}
 
 			@Override
-			public void edgeTraversed(EdgeTraversalEvent<DefaultEdge> e) {				
+//info sull'arco arrivato (ho partenza e arrivo)
+			public void edgeTraversed(EdgeTraversalEvent<DefaultEdge> e) {	
+				DefaultEdge arco = e.getEdge();
+				Fermata a = grafo.getEdgeSource(arco);
+				Fermata b = grafo.getEdgeTarget(arco);
+				//ho scoperto 'a' arrivando da 'b' (se conoscevo già 'b')
+				if(predecessore.containsKey(b) && !predecessore.containsKey(a)) {
+					predecessore.put(a, b);
+				} else if(predecessore.containsKey(a) && !predecessore.containsKey(b)) {
+					//di sicuro conoscevo 'a' e quindi ho scoperto 'b'
+					predecessore.put(b, a);
+				}
 			}
-
+			
+//chiamato quando viene scoperto un vertice
 			@Override
 			public void vertexTraversed(VertexTraversalEvent<Fermata> e) {
-				System.out.println(e.getVertex());
+//				System.out.println(e.getVertex());
+//				//da chi viene scoperto
+//				Fermata nuova = e.getVertex();
+//				Fermata precedente = vertice adiacente a 'nuova' che sia già raggiunto
+//						(cioè è già presente nelle key della mappa);
+//				this.predecessore.put(nuova, precedente);
 			}
 
 			@Override
@@ -123,4 +145,18 @@ public class Model {
 		return null;
 	}
 	
+	public List<Fermata> trovaCammino(Fermata partenza, Fermata arrivo) {
+		fermateRaggiungibili(partenza);
+		
+		List<Fermata> result = new LinkedList<>();
+		result.add(arrivo);
+		Fermata f = arrivo;
+		while(predecessore.get(f) != null) {
+			f = predecessore.get(f);
+			//ogni elemento lo inserisci all'inizio, complessità o(1) dato che la linked list è quella usata (sarebbe meno efficiente per cercare o indicizzare un elemento)
+			result.add(0, f);
+		}
+		return result; 
+	}
+	 
 }
